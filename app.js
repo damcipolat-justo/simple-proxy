@@ -1,28 +1,55 @@
-const http = require('http');
+const express = require('express');
 const httpProxy = require('http-proxy');
 
-// Lista de servicios a balancear
-const targets = [
-    { host: 'http://localhost:3001' },
-    { host: 'http://localhost:3002' },
-    { host: 'http://localhost:3003' }
-];
+const app = express();
+const router = express.Router();
+const proxy = httpProxy.createProxyServer();
 
-let currentTarget = 0;
-const proxy = httpProxy.createProxyServer({});
-
-// Servidor Load Balancer
-const server = http.createServer((req, res) => {
-    const target = targets[currentTarget];
-    currentTarget = (currentTarget + 1) % targets.length; // Round-robin
-    console.log(`Routing request to: ${target.host}`);
-    proxy.web(req, res, { target: target.host }, (err) => {
-        console.error(`Error proxying request to ${target.host}:`, err.message);
-        res.writeHead(502, { 'Content-Type': 'text/plain' });
-        res.end('Bad Gateway');
+const orderStatusBFF = (req, res) => {
+    const target = 'http://127.0.0.1:8080';
+    const newPath = req.originalUrl.replace(/^\/order-status-bff/, ''); // Quitar el prefijo
+  
+    console.log(`🔄 Redirigiendo a: ${target}${newPath}`);
+  
+    proxy.web(req, res, {
+      target,
+      changeOrigin: true,
+      secure: true,
+      xfwd: true,
+      headers: {
+        'X-Real-IP': req.ip,
+        'X-Forwarded-For': req.ip,
+        'X-Forwarded-Host': req.hostname,
+      },
+      selfHandleResponse: false, // Permitir que el proxy maneje la respuesta
     });
-});
+  };
+  
+  const myAccountHelpCenter = (req, res) => {
+    const target = 'http://127.0.0.1:8081';
+    const newPath = req.originalUrl.replace(/^\/myaccount-help-center/, ''); // Ojo con el typo: "myaccont"
+  
+    console.log(`🔄 Redirigiendo a: ${target}${newPath}`);
+  
+    proxy.web(req, res, {
+      target,
+      changeOrigin: true,
+      secure: true,
+      xfwd: true,
+      headers: {
+        'X-Real-IP': req.ip,
+        'X-Forwarded-For': req.ip,
+        'X-Forwarded-Host': req.hostname,
+      },
+      selfHandleResponse: false, // Permitir que el proxy maneje la respuesta
+    });
+  };
 
-server.listen(8080, () => {
-    console.log('Load balancer running on http://localhost:8080');
+router.use('/order-status-bff', orderStatusBFF);
+router.use('/myaccount-help-center/', myAccountHelpCenter);
+
+app.use(router);
+
+app.listen(5000, () => {
+  console.log('Reverse-proxy server is running on port 5000');
 });
