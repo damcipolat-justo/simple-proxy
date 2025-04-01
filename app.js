@@ -1,5 +1,6 @@
 const express = require('express');
 const httpProxy = require('http-proxy');
+const cors = require('cors');
 
 const app = express();
 const router = express.Router();
@@ -47,7 +48,7 @@ const orderStatusBFF = (req, res) => {
 
 router.use('/order-status-bff', orderStatusBFF);
 router.use('/myaccount-help-center/', myAccountHelpCenter);
-
+app.use(cors());
 app.use(router);
 
 app.listen(5000, () => {
