@@ -46,7 +46,7 @@ const orderStatusBFF = (req, res) => {
     });
   };
 
-router.use('/order-status-bff', orderStatusBFF);
+router.use('/order-status-bff/', orderStatusBFF);
 router.use('/myaccount-help-center/', myAccountHelpCenter);
 app.use(cors());
 app.use(router);
