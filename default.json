@@ -1,0 +1,29 @@
+{
+  "server": {
+    "port": "5000"
+  },
+  "proxy": {
+    "map": [
+      {
+        "target": "http://127.0.0.1:8081",
+        "endpoint": "/myaccount-help-center",
+        "routes": [
+          {
+            "method": "get",
+            "path": "/v1/help"
+          }
+        ]
+      },
+      {
+        "target": "http://127.0.0.1:8080",
+        "endpoint": "/order-status-bff",
+        "routes": [
+          {
+            "method": "get",
+            "path": "/v1/order-detail/:id"
+          }
+        ]
+      }
+    ]
+  }
+}
