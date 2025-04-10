@@ -6,6 +6,19 @@ const app = express();
 const router = express.Router();
 const proxy = httpProxy.createProxyServer();
 
+proxy.on('error', (err, req, res) => {
+  console.error('❌ Error en el proxy:', err.message);
+
+  if (!res.headersSent) {
+    res.writeHead(502, { 'Content-Type': 'application/json' });
+  }
+
+  res.end(JSON.stringify({
+    error: 'Bad Gateway',
+    message: 'El servicio de destino no está disponible.'
+  }));
+});
+
 const cartService = (req, res) => {
     const target = 'https://stag.justo.cloud';
     const newPath = req.originalUrl.replace(/^\/cart-service/, ''); // Quitar el prefijo
@@ -25,7 +38,6 @@ const cartService = (req, res) => {
       selfHandleResponse: false, // Permitir que el proxy maneje la respuesta
     });
   };
-  
 
 const orderStatusBFF = (req, res) => {
     const target = 'http://127.0.0.1:8080';
@@ -76,3 +88,4 @@ app.use(router);
 app.listen(5000, () => {
   console.log('Reverse-proxy server is running on port 5000');
 });
+
