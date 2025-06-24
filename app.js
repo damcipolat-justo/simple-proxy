@@ -59,6 +59,26 @@ const cartService = (req, res) => {
   });
 };
 
+const orderReportService = (req, res) => {
+  const target = 'https://stag.justo.cloud';
+  const newPath = req.originalUrl.replace(/^\/orders-reports-service/, '/orders-reports-service'); // Quitar el prefijo
+
+  console.log(`🔄 Redirigiendo a: ${target}${newPath}`);
+
+  proxy.web(req, res, {
+    target,
+    changeOrigin: true,
+    secure: true,
+    xfwd: true,
+    headers: {
+      'X-Real-IP': req.ip,
+      'X-Forwarded-For': req.ip,
+      'X-Forwarded-Host': req.hostname,
+    },
+    selfHandleResponse: false, // Permitir que el proxy maneje la respuesta
+  });
+};
+
 const orderStatusBFF = (req, res) => {
   const target = 'http://127.0.0.1:8080';
   const newPath = req.originalUrl.replace(/^\/order-status-bff/, ''); // Quitar el prefijo
@@ -103,6 +123,7 @@ router.use('/order-status-bff/', orderStatusBFF);
 router.use('/myaccount-help-center/', myAccountHelpCenter);
 router.use('/search-service/', searchService);
 router.use('/cart-service/', cartService);
+router.use('/orders-reports-service/', orderReportService);
 app.use(cors());
 app.use(router);
 
